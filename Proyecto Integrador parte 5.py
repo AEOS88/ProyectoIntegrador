@@ -59,7 +59,7 @@ class JuegoArchivo(Juego):
 
 
 if __name__ == "__main__":
-    map_folder = "maps_folder"  # Cambie esto a la ruta de la carpeta real donde se almacenan los archivos del laberinto.
+    map_folder = "maps_folder"  # Se puede cambiar esto a la ruta de la carpeta real donde se almacenan los archivos del laberinto.
     juego = JuegoArchivo(map_folder)
 
     while True:
