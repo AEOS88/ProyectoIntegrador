@@ -1,8 +1,8 @@
 import os
 import readchar
 import random
-from typing import List, Tuple
 from functools import reduce
+from typing import List, Tuple
 
 WALL = "#"
 PATH = "."
