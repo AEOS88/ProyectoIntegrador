@@ -1,79 +1,105 @@
-import readchar
 import os
+import readchar
 import random
+from typing import List, Tuple
+from functools import reduce
 
 WALL = "#"
 PATH = "."
 PLAYER = "P"
 
 
-class Juego:
-    def __init__(self, maze):
-        self.px = 0
-        self.py = 0
-        self.maze = maze
-        self.place_player(0, 0)
+def crear_laberinto_desde_cadena(maze_string: str, start: Tuple[int, int], end: Tuple[int, int]) -> List[List[str]]:
+    maze = [list(row) for row in maze_string.strip().split("\n")]
 
-    def imprimir_instrucciones(self):
+
+class Juego:
+    def __init__(self, maze: List[List[str]], start: Tuple[int, int], end: Tuple[int, int]):
+        self.px, self.py = start
+        self.maze = maze
+        self.start = start
+        self.end = end
+        self.place_player()
+
+    def imprimir_instrucciones(self) -> None:
         print("\nINSTRUCCIONES: ")
         print("\tUsa las flechas para moverte, q para salir")
 
-    def print_maze(self):
+    def print_maze(self) -> None:
+        os.system('cls' if os.name == 'nt' else 'clear')  # Limpiar pantalla
         for row in self.maze:
             print("".join(row))
         self.imprimir_instrucciones()
 
-    def place_player(self, dx, dy):
-        maze_width = len(self.maze[0])
-        maze_height = len(self.maze)
+    def place_player(self) -> None:
+        self.maze[self.py][self.px] = PLAYER
 
-        if self.px + dx < 0 or self.px + dx >= maze_width or self.py + dy < 0 or self.py + dy >= maze_height:
-            return
-
-        if self.py + dy == maze_height - 1 and self.px + dx == maze_width - 1:
-            print("\n\n\t\tG A N A S T E\n\n")
-            exit()
-
-        if self.maze[self.py + dy][self.px + dx] == PATH:
+    def move_player(self, dx: int, dy: int) -> None:
+        new_px, new_py = self.px + dx, self.py + dy
+        if (
+            0 <= new_px < len(self.maze[0])
+            and 0 <= new_py < len(self.maze)
+            and self.maze[new_py][new_px] != WALL
+        ):
             self.maze[self.py][self.px] = PATH
-            self.maze[self.py + dy][self.px + dx] = PLAYER
-            self.px = self.px + dx
-            self.py = self.py + dy
+            self.px, self.py = new_px, new_py
+            self.place_player()
 
 
 class JuegoArchivo(Juego):
-    def __init__(self, map_folder):
-        maze_file = self.choose_random_file(map_folder)
-        maze_data = self.read_maze_file(map_folder, maze_file)
-        super().__init__(maze_data)
+    def __init__(self, map_folder: str):
+        maze_file = self.elegir_archivo_aleatorio(map_folder)
+        maze_data, start, end = self.leer_maze_desde_archivo(map_folder, maze_file)
+        super().__init__(maze_data, start, end)
 
-    def elegir_archivos_aleatorios(self, map_folder):
+    def elegir_archivo_aleatorio(self, map_folder: str) -> str:
         files = os.listdir(map_folder)
         return random.choice(files)
 
-    def read_maze_file(self, map_folder, file_name):
+    def leer_maze_desde_archivo(self, map_folder: str, file_name: str) -> Tuple[List[List[str]], Tuple[int, int], Tuple[int, int]]:
         path_to_file = os.path.join(map_folder, file_name)
         with open(path_to_file, "r") as f:
-            maze_content = f.read().strip().splitlines()
-            return list(map(lambda x: list(x), maze_content))
+            maze_content = f.readlines()
+            maze_content = reduce(lambda x, y: x + y, map(str.strip, maze_content))
+            rows = len(maze_content)
+            cols = len(maze_content[0])
+            start = (0, 0)
+            end = (cols - 1, rows - 1)
+            return maze_content, start, end
 
 
 if __name__ == "__main__":
-    map_folder = "maps_folder"  # Se puede cambiar esto a la ruta de la carpeta real donde se almacenan los archivos del laberinto.
-    juego = JuegoArchivo(map_folder)
+    # Configuración del laberinto generado
+    maze_string = """
+    ####################
+    #..................#
+    #.################.#
+    #.#..............#.# 
+    #.#.############.#.#
+    #.#..............#.# 
+    #.################.#
+    #..................#
+    ####################
+    """
 
-    while True:
-        os.system('cls' if os.name == 'nt' else 'clear')
-        juego.print_maze()
+    start_position = (0, 0)
+    end_position = (17, 8)
+
+    juego = Juego(crear_laberinto_desde_cadena(maze_string, start_position, end_position), start_position, end_position)
+    juego.print_maze()
+
+    while (juego.px, juego.py) != juego.end:
         key = readchar.readkey()
 
         if key == "q":
             break
         elif key.lower() == "a" or key == readchar.key.LEFT:
-            juego.place_player(-1, 0)
+            juego.move_player(-1, 0)
         elif key.lower() == "s" or key == readchar.key.DOWN:
-            juego.place_player(0, 1)
+            juego.move_player(0, 1)
         elif key.lower() == "d" or key == readchar.key.RIGHT:
-            juego.place_player(1, 0)
+            juego.move_player(1, 0)
         elif key.lower() == "w" or key == readchar.key.UP:
-            juego.place_player(0, -1)
+            juego.move_player(0, -1)
+
+
