@@ -24,7 +24,6 @@ CREATE TABLE Stock (
     sucursal_id INT,
     producto_id INT,
     cantidad INT,
-    UNIQUE (sucursal_id, producto_id),
     FOREIGN KEY (sucursal_id) REFERENCES Sucursal(id),
     FOREIGN KEY (producto_id) REFERENCES Producto(id)
 );
